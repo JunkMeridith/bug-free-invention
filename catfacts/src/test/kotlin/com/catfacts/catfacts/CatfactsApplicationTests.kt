@@ -6,11 +6,17 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.client.TestRestTemplate
+import org.springframework.core.ParameterizedTypeReference
+import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
+import org.springframework.http.RequestEntity
+import org.springframework.http.ResponseEntity
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
+import java.net.URI
+
 
 @Testcontainers
 @ExtendWith(SpringExtension::class)
@@ -39,37 +45,46 @@ class CatfactsApplicationTests {
     @Test
     fun `Calling search after calling cat fact should add cat fact to database`() {
         testRestTemplate.getForEntity("/refresh?animal=cat", String::class.java)
-        val searchResult = testRestTemplate.getForEntity("/search?animal=cat", FactObject::class.java)
+
+        val requestEntity = RequestEntity<Any>(HttpMethod.GET, URI.create("/search?animal=cat"))
+        val searchResult: ResponseEntity<List<FactObject>> = testRestTemplate.exchange(requestEntity, object: ParameterizedTypeReference<List<FactObject>>() {})
+
         assertNotNull(searchResult)
         assertEquals(searchResult.statusCode, HttpStatus.OK)
 
         val fact = searchResult.body
 
         if (fact != null) {
-            assertEquals("cat", fact.type)
-            assertNotNull(fact.text)
-            assertNotNull(fact._id)
+            var firstCat = fact[0]
+            assertEquals("cat", firstCat.type)
+            assertNotNull(firstCat.text)
+            assertNotNull(firstCat._id)
         } else {
             assertTrue(false, "Cat Fact was null")
         }
     }
 
-
     @Test
-    fun `Calling Search with an Animal type of Dog should return an animal type of dog`() {
+    fun `Calling Search with an Animal type of Dog should return a list of dogs`() {
         testRestTemplate.getForEntity("/refresh?animal=dog", String::class.java)
-        val searchResult = testRestTemplate.getForEntity("/search?animal=dog", FactObject::class.java)
+        // TEMP until we refresh more than one
+        testRestTemplate.getForEntity("/refresh?animal=dog", String::class.java)
+
+        val requestEntity = RequestEntity<Any>(HttpMethod.GET, URI.create("/search?animal=dog"))
+        val searchResult: ResponseEntity<List<FactObject>> = testRestTemplate.exchange(requestEntity, object: ParameterizedTypeReference<List<FactObject>>() {})
         assertNotNull(searchResult)
         assertEquals(searchResult.statusCode, HttpStatus.OK)
 
         val fact = searchResult.body
 
         if (fact != null) {
-            assertEquals("dog", fact.type)
-            assertNotNull(fact.text)
-            assertNotNull(fact._id)
+            assertEquals(2, fact.size)
+            val firstDog = fact[0]
+            assertEquals("dog", firstDog.type)
+            assertNotNull(firstDog.text)
+            assertNotNull(firstDog._id)
         } else {
-            assertTrue(false, "dog Fact was null")
+            assertTrue(false, "List of Dog Facts was null")
         }
     }
 
