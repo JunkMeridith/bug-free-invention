@@ -67,9 +67,6 @@ class CatfactsApplicationTests {
     @Test
     fun `Calling Search with an Animal type of Dog should return a list of dogs`() {
         testRestTemplate.getForEntity("/refresh?animal=dog", String::class.java)
-        // TEMP until we refresh more than one
-        testRestTemplate.getForEntity("/refresh?animal=dog", String::class.java)
-
         val requestEntity = RequestEntity<Any>(HttpMethod.GET, URI.create("/search?animal=dog"))
         val searchResult: ResponseEntity<List<FactObject>> = testRestTemplate.exchange(requestEntity, object: ParameterizedTypeReference<List<FactObject>>() {})
         assertNotNull(searchResult)
@@ -78,7 +75,7 @@ class CatfactsApplicationTests {
         val fact = searchResult.body
 
         if (fact != null) {
-            assertEquals(2, fact.size)
+            assertEquals(10, fact.size)
             val firstDog = fact[0]
             assertEquals("dog", firstDog.type)
             assertNotNull(firstDog.text)
