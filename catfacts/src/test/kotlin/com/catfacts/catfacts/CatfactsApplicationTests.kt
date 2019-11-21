@@ -30,12 +30,16 @@ class CatfactsApplicationTests {
 
 
     @Test
-    fun `Calling refresh for cat should populate cat facts into the database`() {
-        val result = testRestTemplate.getForEntity("/refresh/cat", String::class.java)
+    fun `Calling refresh for cat should return OK status`() {
+        val result = testRestTemplate.getForEntity("/refresh?animal=cat", String::class.java)
         assertNotNull(result)
         assertEquals(result.statusCode, HttpStatus.OK)
+    }
 
-        val searchResult = testRestTemplate.getForEntity("/search", FactObject::class.java)
+    @Test
+    fun `Calling search after calling cat fact should add cat fact to database`() {
+        testRestTemplate.getForEntity("/refresh?animal=cat", String::class.java)
+        val searchResult = testRestTemplate.getForEntity("/search?animal=cat", FactObject::class.java)
         assertNotNull(searchResult)
         assertEquals(searchResult.statusCode, HttpStatus.OK)
 
@@ -48,8 +52,25 @@ class CatfactsApplicationTests {
         } else {
             assertTrue(false, "Cat Fact was null")
         }
+    }
 
 
+    @Test
+    fun `Calling Search with an Animal type of Dog should return an animal type of dog`(){
+        testRestTemplate.getForEntity("/refresh?animal=dog", String::class.java)
+        val searchResult = testRestTemplate.getForEntity("/search?animal=dog", FactObject::class.java)
+        assertNotNull(searchResult)
+        assertEquals(searchResult.statusCode, HttpStatus.OK)
+
+        val fact = searchResult.body
+
+        if (fact != null) {
+            assertEquals("dog", fact.type)
+            assertNotNull(fact.text)
+            assertNotNull(fact._id)
+        } else {
+            assertTrue(false, "dog Fact was null")
+        }
     }
 
 }

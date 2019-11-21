@@ -14,9 +14,11 @@ data class FactObject(
         val updatedAt: String = "unknown",
         val createdAt: String = "unknown",
         @Column(name = "userName") val user: String = "unknown",
-        val text: String = "unknown",
+        @Column(length = 1000) val text: String = "unknown",
         val __v: Int) {
 
+    // INTELLIJ LIES.. This is needed for save
+    @Suppress("unused")
     constructor() : this(
             false, "unknown", "unknown", false, "a",
             "a", "a", "a", "a", 0)
