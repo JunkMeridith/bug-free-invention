@@ -22,5 +22,3 @@ data class FactObject(
             "a", "a", "a", "a", 0)
 
 }
-
-

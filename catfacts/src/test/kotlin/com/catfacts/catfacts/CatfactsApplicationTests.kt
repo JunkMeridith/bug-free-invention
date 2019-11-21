@@ -53,6 +53,3 @@ class CatfactsApplicationTests {
     }
 
 }
-
-
-//GET /facts?animal_type=cat,horse
